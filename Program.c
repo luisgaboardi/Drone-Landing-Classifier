@@ -2,10 +2,8 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "ILBP.h"
-
 // Each pixel separator in the .txt file
-#define SEPARATOR ";"
+#define SEPARATOR ';'
 
 int get_image_size(char *);
 int **read_image(int, char *);
@@ -62,7 +60,7 @@ void main()
     char sNum[numberLength];
 
     // Select images to read
-    for(int j = 1, i = 1; j <= dataSetSize*trainingProp/2;)
+    for(float j = 1, i = 1; j <= dataSetSize*trainingProp/2;)
     {
         // Allocate enough space to store image adress string
         imageAdress = (char *) malloc(100*sizeof(char));
@@ -78,10 +76,10 @@ void main()
             strcat(imageAdress, imageType1);
             strcat(imageAdress, "_");
             if(i < 10) strcat(imageAdress, "0");
-            sprintf(sNum, "%d", i);
+            sprintf(sNum, "%.0f", i);
             strcat(imageAdress, sNum);
             strcat(imageAdress, ".txt");
-            printf("[%d] = %s\n", i, imageAdress);
+            printf("[%.0f] = %s\n", i, imageAdress);
             i++;
         }
         // Read all asphalt images
@@ -92,14 +90,15 @@ void main()
             strcat(imageAdress, imageType2);
             strcat(imageAdress, "_");
             if(j < 10) strcat(imageAdress, "0");
-            sprintf(sNum, "%d", j);
+            sprintf(sNum, "%.0f", j);
             strcat(imageAdress, sNum);
             strcat(imageAdress, ".txt");
-            printf("[%d] = %s\n", j, imageAdress);
+            printf("[%.0f] = %s\n", j, imageAdress);
             j++;
         }
         
-        ILBP(read_image(IMAGESIZE, imageAdress));
+        // ILBP (read_image(IMAGESIZE, imageAdress));
+        read_image(IMAGESIZE, imageAdress);
 
         free(imageAdress);
         imageAdress = NULL;
@@ -129,19 +128,12 @@ int get_image_size(char *fileLocation)
     int size = 1; // Between 0 and 1, depending if the file has a separator in the last element of the line
 
     image = fopen(fileLocation, "r");
-    if (!image)
-    {
-        perror("Error while opening this file");
-        exit(EXIT_FAILURE);
-    }
-    
-    //Read first line and assume image is squared
     fscanf(image, "%ms", &counter);
     fclose(image);
 
     for(int i = 0; i < strlen(counter); ++i)
     {
-        if(counter[i] == SEPARATOR[0]) size++;
+        if(counter[i] == SEPARATOR) size++;
     }
 
     return size;
@@ -177,13 +169,13 @@ int **read_image(int imgSize, char *imgName)
     for (int l = 0; getline(&line, &len, image) != -1; ++l)
     {
         //Splitting string to separate each pixel value
-        char *pixel = strtok(line, SEPARATOR);
-        imgPixelsValues[l][0] = atoi(pixel);
-
+        char *pixel = strtok(line, ";");
+        imgPixelsValues[0][0] = atoi(pixel);
         for(int column = 1; column < imgSize; ++column)
         {
-            pixel = strtok(NULL, SEPARATOR);
-            imgPixelsValues[l][column] = atoi(pixel);
+            pixel = strtok(NULL, ";");
+            imgPixelsValues[0][column] = atoi(pixel);
+            //printf("[%d] - %d\n", column, imgPixelsValues[0][column]);
         }
     }
 
@@ -203,27 +195,27 @@ int **read_image(int imgSize, char *imgName)
 
 int **matrix_allocation(int size)
 {
-    int **m;
+    int **m;  /* ponteiro para a matriz */
 
-    if (size < 1) { /* verify parameters */
-        printf ("** Error: Invalid parameter **\n");
+    if (size < 1) { /* verifica parametros recebidos */
+        printf ("** Erro: Parametro invalido **\n");
         return (NULL);
     }
-    /* allocate matrix lines */
-    m = (int **) calloc (size, sizeof(int *));
+    /* aloca as linhas da matriz */
+    m = (int **) calloc (size, sizeof(int *));	// Um vetor de size ponteiros para int */
     if (m == NULL) {
-        printf ("** Error: Insuficient Memory **");
+        printf ("** Erro: Memoria Insuficiente **");
         return (NULL);
     }
-    /* allocate matrix columns */
+    /* aloca as colunas da matriz */
     for (int i = 0; i < size; i++ ) {
-        m[i] = (int*) calloc (size, sizeof(int));
+        m[i] = (int*) calloc (size, sizeof(int));	/* size vetores de size ints */
         if (m[i] == NULL) {
-            printf ("** Error: Insuficient Memory **");
+            printf ("** Erro: Memoria Insuficiente **");
             return (NULL);
         }
     }
-    return (m);
+    return (m); /* retorna o ponteiro para a matriz */
 }
 
 
@@ -237,15 +229,12 @@ int **matrix_allocation(int size)
 
 int **free_matrix (int size, int **m)
 {
-    if (m == NULL) return (NULL);
-
-    if (size < 1) {  /* verify parameters */
-        printf ("** Erro: Parametro invalido **\n");
-        return (m);
-    }
-  
-    for (int i = 0; i < size; i++) free (m[i]);
-    free (m);
-
-    return (NULL);
+  if (m == NULL) return (NULL);
+  if (size < 1) {  /* verifica parametros recebidos */
+     printf ("** Erro: Parametro invalido **\n");
+     return (m);
+     }
+  for (int i = 0; i < size; i++) free (m[i]); /* libera as linhas da matriz */
+  free (m);      /* libera a matriz (vetor de ponteiros) */
+  return (NULL); /* retorna um ponteiro nulo */
 }
