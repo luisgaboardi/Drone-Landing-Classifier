@@ -1,30 +1,28 @@
 #include "functions.h"
 
-int *ILBP(int **pixel)
-{ 
-    //** Find way to get the image size here without passing as parameter) **//
-    
+int *ILBP(int **pixel, int size)
+{    
     // Allocating matrix aux to store neighbors
     int **aux = matrix_allocation(3);
 
     // int array with 0 and 1 of the 9 neighbor pixels
     char *neighborArray = (char *) malloc(9*sizeof(char));
     if (neighborArray == NULL) {
-        printf ("** Erro: Memoria Insuficiente **");
+        printf ("** Error: Insuficient memory **");
         return (NULL);
     }
 
     // Result Array of ILBP
-    int *ILBPArray = array_allocation(256);
+    int *ILBPArray = array_allocation(512);
 
     // First Step ILBP: Generating aux matrix with 0 and 1 comparing pixel value with the average of the 9 neighbor pixels including itself
     float average;
 
     int arrayInd;
     
-    for (int l = 1; l < 1024; ++l)
+    for (int l = 1; l < size-1; ++l)
     {
-        for (int c = 1; c < 1024; ++c)
+        for (int c = 1; c < size-1; ++c)
         {
             // Calculate average
             average = 0;
@@ -52,14 +50,6 @@ int *ILBP(int **pixel)
 
             ILBPArray[getMinValue(neighborArray)]++;
         }
-    }
-
-    int counter = 0;
-
-    for (int i = 0; i < 256; ++i)
-    {
-        //printf("[%d]= %d\n", i, ILBPArray[i]);
-        counter += ILBPArray[i];
     }
 
     aux = free_matrix(3, aux);

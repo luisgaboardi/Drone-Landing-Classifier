@@ -1,3 +1,6 @@
+#ifndef FUNCTIONS
+#define FUNCTIONS
+
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -16,27 +19,27 @@ int getMinValue(char []);
 
 int **matrix_allocation(int size)
 {
-    int **m;  /* ponteiro para a matriz */
+    int **m;
 
-    if (size < 1) { /* verifica parametros recebidos */
-        printf ("** Erro: Parametro invalido **\n");
+    if (size < 1) {
+        printf ("** Error: Invalid parameter **\n");
         return (NULL);
     }
-    /* aloca as linhas da matriz */
-    m = (int **) calloc (size, sizeof(int *));	// Um vetor de size ponteiros para int */
+
+    m = (int **) calloc (size, sizeof(int *));
     if (m == NULL) {
-        printf ("** Erro: Memoria Insuficiente **");
+        printf ("** Error: Insuficient memory **");
         return (NULL);
     }
-    /* aloca as colunas da matriz */
+
     for (int i = 0; i < size; i++ ) {
-        m[i] = (int*) calloc (size, sizeof(int));	/* size vetores de size ints */
+        m[i] = (int*) calloc (size, sizeof(int));
         if (m[i] == NULL) {
-            printf ("** Erro: Memoria Insuficiente **");
+            printf ("** Error: Insuficient memory **");
             return (NULL);
         }
     }
-    return (m); /* retorna o ponteiro para a matriz */
+    return (m);
 }
 
 
@@ -51,13 +54,13 @@ int **matrix_allocation(int size)
 int **free_matrix (int size, int **m)
 {
   if (m == NULL) return (NULL);
-  if (size < 1) {  /* verifica parametros recebidos */
-     printf ("** Erro: Parametro invalido **\n");
+  if (size < 1) {
+     printf ("** Error: Invalid parameter **\n");
      return (m);
      }
-  for (int i = 0; i < size; i++) free (m[i]); /* libera as linhas da matriz */
-  free (m);      /* libera a matriz (vetor de ponteiros) */
-  return (NULL); /* retorna um ponteiro nulo */
+  for (int i = 0; i < size; i++) free (m[i]);
+  free (m);
+  return (NULL);
 }
 
 
@@ -74,13 +77,13 @@ int *array_allocation(int size)
     int *a;
 
     if (size < 1) {
-        printf ("** Erro: Parametro invalido **\n");
+        printf ("** Error: Invalid parameter **\n");
         return (NULL);
     }
 
     a = (int *) calloc (size, sizeof(int));
     if (a == NULL) {
-        printf ("** Erro: Memoria Insuficiente **");
+        printf ("** Error: Insuficient memory **");
         return (NULL);
     }
 
@@ -140,3 +143,7 @@ int getMinValue(char bin[])
 
     return min;
 }
+
+
+
+#endif

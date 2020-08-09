@@ -1,4 +1,5 @@
 #include "ILBP.h"
+#include "GLCM.h"
 #include <string.h>
 
 // Each pixel separator in the .txt file
@@ -11,9 +12,9 @@ int **read_image(int, char *);
 /*
   1) Get size of images - OK
   2) Save them in a dynamic memory variable (matrix) - OK
-  3) ILBP - generate vector with ILBP code frequency
-  4) GLCM
-  5) Classifier with Machine Learning
+  3) ILBP - generate array with ILBP code frequency for each image - OK
+  4) GLCM - generate array with the 24 image features (3 for each of the 8 matrixes)
+  5) Classifier measured by euclidian distance
   --------- ML vs NN ---------
   5) Create neurons
   6) Design feed-foward neural network with arbitrary neurons in the one hidden layer
@@ -53,11 +54,20 @@ void main()
     // Image address string
     char imageAdress[100];
 
+    // Store the matrix of the read image
+    int **imageRead = matrix_allocation(IMAGESIZE);
+
     // Image number string
     char sNum[numberLength];
 
     // ILBP return array
-    int *ILBPArray = array_allocation(256);
+    int *ILBPArray = array_allocation(512);
+
+    // GLCM return array
+    int *GLCMArray = array_allocation(24);
+
+    // Image features (final result of each image)
+    int *imgFeatures = array_allocation(536);
 
     // Select images to read
     for(int j = 1, i = 1; j <= dataSetSize*trainingProp/2;)
@@ -95,12 +105,15 @@ void main()
             j++;
         }
         
-        ILBPArray = ILBP(read_image(IMAGESIZE, imageAdress));
+        imageRead = read_image(IMAGESIZE, imageAdress);
 
-        //GLCM
+        ILBPArray = ILBP(imageRead, IMAGESIZE);
+
+        //GLCMArray = 
+        GLCM(imageRead, IMAGESIZE);
 
         free(ILBPArray);
-        
+        //free(GLCMArray);
 
     }
     
