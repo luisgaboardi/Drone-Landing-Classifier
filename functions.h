@@ -3,6 +3,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <math.h>
 
 
 int **matrix_allocation(int);
@@ -10,7 +11,7 @@ int **free_matrix (int, int **);
 
 int *array_allocation(int);
 
-int binToInt(int);
+int binToInt(char [], int);
 int getMinValue(char []);
 
 
@@ -100,18 +101,15 @@ int *array_allocation(int size)
 
 
 
-int binToInt(int num)
+int binToInt(char num[], int lenght) // 001000110
 {
-    int binary_val, decimal_val = 0, base = 1, rem;
- 
-    while (num > 0)
+    int decimal = 0;
+    for (int i = 0; i <= lenght; ++i)
     {
-        rem = num % 10;
-        decimal_val = decimal_val + rem * base;
-        num = num / 10 ;
-        base = base * 2;
+        decimal += ((int) num[i] - '0') * pow(2.0, lenght-i);
     }
-    return decimal_val;
+
+    return decimal;
 }
 
 
@@ -124,19 +122,21 @@ int binToInt(int num)
 
 int getMinValue(char bin[])
 {
-    int numericValue = binToInt(atoi(bin));
+    int numericValue = 252;
+    int lenght = 8;
     int min = numericValue;
     char aux;
 
-    for(int i = 0; i < 8; ++i)
+    for(int i = 0; i < lenght; ++i)
     {
-        aux = bin[8];
-        for (int i = 8; i > 0; --i)
+        aux = bin[lenght];
+        for (int i = lenght; i > 0; --i)
         { 
             bin[i] = bin[i-1];
         }
         bin[0] = aux;
-        numericValue = binToInt(atoi(bin));
+        
+        numericValue = binToInt(bin, lenght);
         
         if(numericValue < min) min = numericValue;
     }

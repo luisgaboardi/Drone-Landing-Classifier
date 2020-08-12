@@ -110,7 +110,7 @@ void main()
         ILBPArray = ILBP(imageRead, IMAGESIZE);
 
         //GLCMArray = 
-        GLCM(imageRead, IMAGESIZE);
+        //GLCM(imageRead, IMAGESIZE);
 
         free(ILBPArray);
         //free(GLCMArray);

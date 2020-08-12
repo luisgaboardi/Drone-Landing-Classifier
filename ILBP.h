@@ -24,24 +24,25 @@ int *ILBP(int **pixel, int size)
     {
         for (int c = 1; c < size-1; ++c)
         {
-            // Calculate average
+            // Calculate average and create neighbor matrix
             average = 0;
             for (int i = l, x = 0; i <= l+2; ++i, x++)
             {
                 for (int j = c, y = 0; j <= c+2; ++j, y++)
                 {
-                    average += pixel[i-1][j-1];
+                    aux[x][y] = pixel[i-1][j-1];
+                    average += aux[x][y];
                 }
             }
             average /= 9.0;
             
-            // Define neighbor binary array
+            // Define neighbor binary word(array)
             arrayInd = 0;
-            for (int i = l, x = 0; i <= l+2; ++i, x++)
+            for (int x = 0; x <= 2; x++)
             {
-                for (int j = c, y = 0; j <= c+2; ++j, y++)
+                for (int y = 0; y <= 2; y++)
                 {
-                    if (pixel[i-1][j-1] < average) aux[x][y] = 0;
+                    if (aux[x][y] < average) aux[x][y] = 0;
                     else aux[x][y] = 1;
                     neighborArray[arrayInd] = aux[x][y] + '0';
                     arrayInd++;
