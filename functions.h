@@ -11,7 +11,7 @@ int **free_matrix (int, int **);
 
 int *array_allocation(int);
 
-int binToInt(char [], int);
+int binToInt(int, int);
 int getMinValue(char []);
 
 
@@ -101,16 +101,36 @@ int *array_allocation(int size)
 
 
 
-int binToInt(char num[], int lenght) // 001000110
+int binToInt(int num, int lenght)
 {
-    int decimal = 0;
-    for (int i = 0; i <= lenght; ++i)
+    int decimal_val = 0, base = 1, rem;
+
+    while (num > 0)
     {
-        decimal += ((int) num[i] - '0') * pow(2.0, lenght-i);
+        rem = num % 10;
+        decimal_val = decimal_val + rem * base;
+        num = num / 10 ;
+        base = base * 2;
     }
 
-    return decimal;
+    return decimal_val;
 }
+
+
+
+
+
+void shiftArr1Pos(char *arr1, int arrSize) 
+{
+    int i, temp;
+    temp = arr1[0];
+    for(i = 0; i < arrSize-1; i++) 
+	{
+        arr1[i] = arr1[i+1];
+    }
+    arr1[i] = temp;
+}
+
 
 
 
@@ -122,28 +142,19 @@ int binToInt(char num[], int lenght) // 001000110
 
 int getMinValue(char bin[])
 {
-    int numericValue = 252;
-    int lenght = 8;
-    int min = numericValue;
-    char aux;
+    int numericValue;
+    int lenght = 9;
+    int min = 511;
 
     for(int i = 0; i < lenght; ++i)
     {
-        aux = bin[lenght];
-        for (int i = lenght; i > 0; --i)
-        { 
-            bin[i] = bin[i-1];
-        }
-        bin[0] = aux;
-        
-        numericValue = binToInt(bin, lenght);
-        
-        if(numericValue < min) min = numericValue;
+        shiftArr1Pos(bin, lenght);
+
+        numericValue = binToInt(atoi(bin), lenght);
+        if (numericValue <= min) min = numericValue;
     }
 
     return min;
 }
-
-
 
 #endif

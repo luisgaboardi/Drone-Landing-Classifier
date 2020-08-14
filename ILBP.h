@@ -6,11 +6,7 @@ int *ILBP(int **pixel, int size)
     int **aux = matrix_allocation(3);
 
     // int array with 0 and 1 of the 9 neighbor pixels
-    char *neighborArray = (char *) malloc(9*sizeof(char));
-    if (neighborArray == NULL) {
-        printf ("** Error: Insuficient memory **");
-        return (NULL);
-    }
+    char neighborArray[9];
 
     // Result Array of ILBP
     int *ILBPArray = array_allocation(512);
@@ -18,7 +14,7 @@ int *ILBP(int **pixel, int size)
     // First Step ILBP: Generating aux matrix with 0 and 1 comparing pixel value with the average of the 9 neighbor pixels including itself
     float average;
 
-    int arrayInd;
+    int arrayInd, min;
     
     for (int l = 1; l < size-1; ++l)
     {
@@ -34,7 +30,10 @@ int *ILBP(int **pixel, int size)
                     average += aux[x][y];
                 }
             }
+
             average /= 9.0;
+
+            
             
             // Define neighbor binary word(array)
             arrayInd = 0;
@@ -42,19 +41,25 @@ int *ILBP(int **pixel, int size)
             {
                 for (int y = 0; y <= 2; y++)
                 {
-                    if (aux[x][y] < average) aux[x][y] = 0;
+                    if (aux[x][y] <= average) aux[x][y] = 0;
                     else aux[x][y] = 1;
                     neighborArray[arrayInd] = aux[x][y] + '0';
                     arrayInd++;
                 }
             }
 
-            ILBPArray[getMinValue(neighborArray)]++;
+            min = getMinValue(neighborArray);
+
+            ILBPArray[min]++;
         }
     }
 
+    // for (int i = 0; i < 256; ++i)
+    // {
+    //     if(ILBPArray[i] != 0) printf("[%d] = %d\t", i, ILBPArray[i]);
+    // }
+
     aux = free_matrix(3, aux);
-    free(neighborArray);
 
     return ILBPArray;
 

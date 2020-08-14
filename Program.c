@@ -61,13 +61,13 @@ void main()
     char sNum[numberLength];
 
     // ILBP return array
-    int *ILBPArray = array_allocation(512);
+    int *ILBPArray = array_allocation(256);
 
     // GLCM return array
     int *GLCMArray = array_allocation(24);
 
     // Image features (final result of each image)
-    int *imgFeatures = array_allocation(536);
+    int *imgFeatures = array_allocation(280);
 
     // Select images to read
     for(int j = 1, i = 1; j <= dataSetSize*trainingProp/2;)
@@ -87,7 +87,7 @@ void main()
             sprintf(sNum, "%d", i);
             strcat(imageAdress, sNum);
             strcat(imageAdress, ".txt");
-            printf("[%d] = %s\n", i, imageAdress);
+            printf("\n\n****[%d] = %s****\n", i, imageAdress);
             i++;
         }
         // Read all asphalt images
@@ -101,7 +101,7 @@ void main()
             sprintf(sNum, "%d", j);
             strcat(imageAdress, sNum);
             strcat(imageAdress, ".txt");
-            printf("[%d] = %s\n", j, imageAdress);
+            printf("\n\n****[%d] = %s****\n", j, imageAdress);
             j++;
         }
         
