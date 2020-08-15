@@ -1,6 +1,5 @@
 #include "ILBP.h"
 #include "GLCM.h"
-#include <string.h>
 
 // Each pixel separator in the .txt file
 #define SEPARATOR ";"
@@ -69,6 +68,26 @@ void main()
     // Image features (final result of each image)
     int *imgFeatures = array_allocation(280);
 
+    // Initializes random number generator
+    time_t t;
+    srand((unsigned) time(&t));
+    int random[(int)(dataSetSize*trainingProp+1)];
+    random[0] = 0;
+
+    // Generate random number array between 1 - 50
+    for (int i = 1; i <= dataSetSize*trainingProp; ++i)
+    {
+        random[i] = i;
+    }
+
+    for (int i = 1; i <= dataSetSize*trainingProp; i++) // Shuffle
+    {
+        int temp = random[i];
+        int randomIndex = rand() % (int) dataSetSize*trainingProp + 1;
+        random[i]           = random[randomIndex];
+        random[randomIndex] = temp;
+    }
+
     // Select images to read
     for(int j = 1, i = 1; j <= dataSetSize*trainingProp/2;)
     {
@@ -83,8 +102,8 @@ void main()
             strcat(imageAdress, "/");
             strcat(imageAdress, imageType1);
             strcat(imageAdress, "_");
-            if(i < 10) strcat(imageAdress, "0");
-            sprintf(sNum, "%d", i);
+            if(random[i] < 10) strcat(imageAdress, "0");
+            sprintf(sNum, "%d", random[i]);
             strcat(imageAdress, sNum);
             strcat(imageAdress, ".txt");
             printf("\n\n****[%d] = %s****\n", i, imageAdress);
@@ -97,8 +116,8 @@ void main()
             strcat(imageAdress, "/");
             strcat(imageAdress, imageType2);
             strcat(imageAdress, "_");
-            if(j < 10) strcat(imageAdress, "0");
-            sprintf(sNum, "%d", j);
+            if(random[j] < 10) strcat(imageAdress, "0");
+            sprintf(sNum, "%d", random[j]);
             strcat(imageAdress, sNum);
             strcat(imageAdress, ".txt");
             printf("\n\n****[%d] = %s****\n", j, imageAdress);
@@ -108,6 +127,7 @@ void main()
         imageRead = read_image(IMAGESIZE, imageAdress);
 
         ILBPArray = ILBP(imageRead, IMAGESIZE);
+        printf("ILBP Done.\n");
 
         //GLCMArray = 
         //GLCM(imageRead, IMAGESIZE);
