@@ -75,7 +75,7 @@ int **free_matrix (int size, int **m)
 
 
 
-int *array_allocation(int size)
+int *int_array_allocation(int size)
 {
     int *a;
 
@@ -85,6 +85,34 @@ int *array_allocation(int size)
     }
 
     a = (int *) calloc (size, sizeof(int));
+    if (a == NULL) {
+        printf ("** Error: Insuficient memory **");
+        return (NULL);
+    }
+
+    return (a);
+}
+
+
+
+
+
+
+
+
+
+
+
+double *double_array_allocation(int size)
+{
+    double *a;
+
+    if (size < 1) {
+        printf ("** Error: Invalid parameter **\n");
+        return (NULL);
+    }
+
+    a = (double *) calloc (size, sizeof(double));
     if (a == NULL) {
         printf ("** Error: Insuficient memory **");
         return (NULL);

@@ -60,13 +60,16 @@ void main()
     char sNum[numberLength];
 
     // ILBP return array
-    int *ILBPArray = array_allocation(256);
+    int *ILBPArray = int_array_allocation(256);
 
     // GLCM return array
-    int *GLCMArray = array_allocation(24);
+    double *GLCMArray = double_array_allocation(24);
 
     // Image features (final result of each image)
-    int *imgFeatures = array_allocation(280);
+    double *imgFeatures = double_array_allocation(280);
+
+    // Average ILBP
+    double *averageFeatures = double_array_allocation(280);
 
     // Initializes random number generator
     time_t t;
@@ -106,7 +109,7 @@ void main()
             sprintf(sNum, "%d", random[i]);
             strcat(imageAdress, sNum);
             strcat(imageAdress, ".txt");
-            printf("\n\n****[%d] = %s****\n", i, imageAdress);
+            printf("\n\n**** [Image %d] = %s ****\n", i, imageAdress);
             i++;
         }
         // Read all asphalt images
@@ -120,7 +123,7 @@ void main()
             sprintf(sNum, "%d", random[j]);
             strcat(imageAdress, sNum);
             strcat(imageAdress, ".txt");
-            printf("\n\n****[%d] = %s****\n", j, imageAdress);
+            printf("\n\n**** [Image %d] = %s ****\n", j, imageAdress);
             j++;
         }
         
@@ -129,13 +132,30 @@ void main()
         ILBPArray = ILBP(imageRead, IMAGESIZE);
         printf("ILBP Done.\n");
 
-        //GLCMArray = 
-        //GLCM(imageRead, IMAGESIZE);
+        GLCMArray = GLCM(imageRead, IMAGESIZE);
+        printf("GLCM Done.\n");
+
+        for(int i = 0; i < 256; ++i)
+        {
+            // printf("[%d] = %d\t", i, ILBPArray[i]);
+            imgFeatures[i] = ILBPArray[i];
+        }
+
+        for(int i = 256; i < 280; ++i)
+        {
+            // printf("\n{%d} = %.4lf", i, GLCMArray[i-256]);
+            imgFeatures[i] = GLCMArray[i-256];
+        }
+
+        printf("*Image features array created!*\n");
 
         free(ILBPArray);
-        //free(GLCMArray);
+
+        free(GLCMArray);
 
     }
+
+    free(imgFeatures);
     
 }
 

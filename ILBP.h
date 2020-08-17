@@ -9,7 +9,7 @@ int *ILBP(int **pixel, int size)
     char neighborArray[9];
 
     // Result Array of ILBP
-    int *ILBPArray = array_allocation(512);
+    int *ILBPArray = int_array_allocation(512);
 
     // First Step ILBP: Generating aux matrix with 0 and 1 comparing pixel value with the average of the 9 neighbor pixels including itself
     float average;
