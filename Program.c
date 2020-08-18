@@ -5,14 +5,14 @@
 #define SEPARATOR ";"
 
 int get_image_size(char *);
-int **read_image(int, char *);
+int **read_image(char *, int);
 
 
 /*
   1) Get size of images - OK
   2) Save them in a dynamic memory variable (matrix) - OK
   3) ILBP - generate array with ILBP code frequency for each image - OK
-  4) GLCM - generate array with the 24 image features (3 for each of the 8 matrixes)
+  4) GLCM - generate array with the 24 image features (3 for each of the 8 matrixes) - OK
   5) Classifier measured by euclidian distance
   --------- ML vs NN ---------
   5) Create neurons
@@ -25,17 +25,17 @@ void main()
 {
     //DataSet adresses
     char imagesFolder[] = "DataSet/";
-    char imageType1[] = "grass";
-    char imageType2[] = "asphalt";
+    char imageType1[] = "asphalt";
+    char imageType2[] = "grass";
 
     // 50 grass and 50 asphalt
-    const float dataSetSize = 100.0;
+    const int dataSetSize = 100;
 
-    // Percentage of how many images will be used for training
-    const float trainingProp = 50.0/100.0; 
+    // how many images will be used for training
+    const int trainingImages = 50;
 
-    // Percentage of how many images will be used for testing
-    const float testingProp = (100.0 - trainingProp) / 100.0;
+    // how many images will be used for testing
+    const int testingImages = 100 - trainingImages;
     
     // Get example to determine how many pixels the images have
     char imgEx[] = "DataSet/grass/grass_01.txt";
@@ -50,112 +50,174 @@ void main()
         auxDataSize /= 10;
     }
 
-    // Image address string
+    // Image address string (arbitrary size)
     char imageAdress[100];
+
+    // Image number string (needed to select image and concatenate with the imageAdress)
+    char sNum[numberLength];
 
     // Store the matrix of the read image
     int **imageRead = matrix_allocation(IMAGESIZE);
 
-    // Image number string
-    char sNum[numberLength];
-
     // ILBP return array
-    int *ILBPArray = int_array_allocation(256);
+    int ILBPSize = 256;
+    int *ILBPArray = int_array_allocation(ILBPSize);
 
     // GLCM return array
-    double *GLCMArray = double_array_allocation(24);
+    int GLCMSize = 24;
+    double *GLCMArray = double_array_allocation(GLCMSize);
 
     // Image features (final result of each image)
-    double *imgFeatures = double_array_allocation(280);
+    int imageFeatureArraySize = 280;
+    double *imgFeatures = double_array_allocation(imageFeatureArraySize);
 
-    // Average ILBP
-    double *averageFeatures = double_array_allocation(280);
+    // Average image features (average result)
+    double *averageFeatures = double_array_allocation(imageFeatureArraySize);
+
+    // Classification array (average feature data after training) for each type
+    double *type1Classification = double_array_allocation(imageFeatureArraySize);
+    double *type2Classification = double_array_allocation(imageFeatureArraySize);
 
     // Initializes random number generator
     time_t t;
     srand((unsigned) time(&t));
-    int random[(int)(dataSetSize*trainingProp+1)];
-    random[0] = 0;
 
-    // Generate random number array between 1 - 50
-    for (int i = 1; i <= dataSetSize*trainingProp; ++i)
-    {
-        random[i] = i;
-    }
+    // Array to store the random image order, half for training and half for testing
+    int randomImageOrder[dataSetSize+1];
+    randomImageOrder[0] = 0;
 
-    for (int i = 1; i <= dataSetSize*trainingProp; i++) // Shuffle
+    // Generate sequential array from 1 to 50
+    for (int img = 1; img <= trainingImages; ++img) randomImageOrder[img] = img;
+
+    // Shuffle the array to form a random array
+    for (int img = 1; img <= trainingImages; ++img) 
     {
-        int temp = random[i];
-        int randomIndex = rand() % (int) dataSetSize*trainingProp + 1;
-        random[i]           = random[randomIndex];
-        random[randomIndex] = temp;
+        int temp = randomImageOrder[img];
+        int randomIndex = (rand() % trainingImages) + 1;
+        randomImageOrder[img]         = randomImageOrder[randomIndex];
+        randomImageOrder[randomIndex] = temp;
     }
 
     // Select images to read
-    for(int j = 1, i = 1; j <= dataSetSize*trainingProp/2;)
+    for(int type1 = 1, type2 = 1; type2 <= trainingImages/2;)
     {
+        // Erase previous image name to store the next one
         imageAdress[0] = '\0';
+
         // Concatenating substrings to form image adress
         strcat(imageAdress, imagesFolder);
 
-        // Read all grass images
-        if(i <= dataSetSize*trainingProp/2)
+        // Read 'trainingImages/2' asphalt images
+        if(type1 <= trainingImages/2)
         {
             strcat(imageAdress, imageType1);
             strcat(imageAdress, "/");
             strcat(imageAdress, imageType1);
             strcat(imageAdress, "_");
-            if(random[i] < 10) strcat(imageAdress, "0");
-            sprintf(sNum, "%d", random[i]);
+            // The images below 10 in the dataset used have a 0 before the number
+            if(randomImageOrder[type1] < 10) strcat(imageAdress, "0");
+            sprintf(sNum, "%d", randomImageOrder[type1]);
             strcat(imageAdress, sNum);
             strcat(imageAdress, ".txt");
-            printf("\n\n**** [Image %d] = %s ****\n", i, imageAdress);
-            i++;
+            printf("\n\n**** [Image %d] = %s ****\n", type1, imageAdress);
+            type1++;
         }
-        // Read all asphalt images
+
+        // Read 'trainingImages/2' training grass images
         else
         {
             strcat(imageAdress, imageType2);
             strcat(imageAdress, "/");
             strcat(imageAdress, imageType2);
             strcat(imageAdress, "_");
-            if(random[j] < 10) strcat(imageAdress, "0");
-            sprintf(sNum, "%d", random[j]);
+            // The images below 10 in the dataset used have a 0 before the number
+            if(randomImageOrder[type2] < 10) strcat(imageAdress, "0");
+            sprintf(sNum, "%d", randomImageOrder[type2]);
             strcat(imageAdress, sNum);
             strcat(imageAdress, ".txt");
-            printf("\n\n**** [Image %d] = %s ****\n", j, imageAdress);
-            j++;
+            printf("\n\n**** [Image %d] = %s ****\n", type2, imageAdress);
+            type2++;
         }
         
-        imageRead = read_image(IMAGESIZE, imageAdress);
+        // Read image's pixels values and store in 'imageRead' matrix
+        imageRead = read_image(imageAdress, IMAGESIZE);
 
+        // Run ILBP algorithm on the just read image and store result array in 'ILBPArray'
         ILBPArray = ILBP(imageRead, IMAGESIZE);
-        printf("ILBP Done.\n");
+        //printf("ILBP Done.\n");
 
+        // Run GLCM algorithm on the just read image and store result array in 'ILBPArray'
         GLCMArray = GLCM(imageRead, IMAGESIZE);
-        printf("GLCM Done.\n");
+        //printf("GLCM Done.\n");
 
-        for(int i = 0; i < 256; ++i)
+        // Store ILBP result in the 'imgFeatures' array
+        for(int f = 0; f < ILBPSize; ++f) imgFeatures[f] = ILBPArray[f];
+
+        // Store GLCM result in the 'imgFeatures' array after the ILBP results
+        for(int f = ILBPSize; f < imageFeatureArraySize; ++f) imgFeatures[f] = GLCMArray[f-ILBPSize];
+
+        // Normalize
+        //imgFeatures = normalize(imgFeatures, imageFeatureArraySize);
+
+        // Calculate the sum of the imageFeatures
+        for(int s = 0; s < imageFeatureArraySize; ++s) averageFeatures[s] += imgFeatures[s];
+
+        // After reading the first 'trainingImages/2' images of the 'type1'
+        if(type1 == trainingImages/2 + 1)
         {
-            // printf("[%d] = %d\t", i, ILBPArray[i]);
-            imgFeatures[i] = ILBPArray[i];
-        }
+            type1++;
+            // Divide the sum of the imgFeatures by the number of images os this type trained to get the average features values
+            for(int feature = 0; feature < imageFeatureArraySize; ++feature)
+            {
+                averageFeatures[feature] /= (trainingImages/2);
+                // Store data
+                type1Classification[feature] = averageFeatures[feature];
+            }
 
-        for(int i = 256; i < 280; ++i)
+            printf("*Type1 parameters array done!!*\n");
+
+
+
+
+            // TESTING
+
+
+
+            // Finally, clear 'averageFeatures' array to now be used for the 'type2' images
+            for(int feature = 0; feature < imageFeatureArraySize; ++feature) averageFeatures[feature] = 0;
+
+        }
+        // After reading the last 'trainingImages/2' images of the 'type2'
+        else if(type2 == trainingImages/2 + 1)
         {
-            // printf("\n{%d} = %.4lf", i, GLCMArray[i-256]);
-            imgFeatures[i] = GLCMArray[i-256];
+            type2++;
+            // Divide the sum of the imgFeatures by the number of images os this type trained to get the average features values
+            for(int feature = 0; feature < imageFeatureArraySize; ++feature)
+            {
+                averageFeatures[feature] /= (trainingImages/2);
+                // Store data
+                type2Classification[feature] = averageFeatures[feature];
+            } 
+
+            printf("*Type2 parameters array done!!*\n");
+            free(imgFeatures);
+            free(ILBPArray);
+            free(GLCMArray);
+            free(averageFeatures);
+
+
+
+            // TESTING
+
+
+
+            
         }
-
-        printf("*Image features array created!*\n");
-
-        free(ILBPArray);
-
-        free(GLCMArray);
 
     }
 
-    free(imgFeatures);
+    free(type2Classification);
+    free(type1Classification);
     
 }
 
@@ -200,7 +262,7 @@ int get_image_size(char *fileLocation)
 
 
 
-int **read_image(int imgSize, char *imgName)
+int **read_image(char *imgName, int imgSize)
 {
     // Dynamically allocate a matrix to store the pixels values
     int **imgPixelsValues = matrix_allocation(imgSize);

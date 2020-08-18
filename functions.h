@@ -16,7 +16,7 @@ int *array_allocation(int);
 int binToInt(int, int);
 int getMinValue(char []);
 
-
+double *normalize(double *, int);
 
 
 
@@ -173,7 +173,7 @@ void shiftArr1Pos(char *arr1, int arrSize)
 int getMinValue(char bin[])
 {
     int numericValue;
-    int lenght = 9;
+    int lenght = 8;
     int min = 511;
 
     for(int i = 0; i < lenght; ++i)
@@ -186,5 +186,41 @@ int getMinValue(char bin[])
 
     return min;
 }
+
+
+
+
+
+
+
+
+
+
+// double *normalize(double *imgFeatures, int arraySize)
+// {
+//     double *normalizedArray = double_array_allocation(arraySize);
+
+
+//     return normalizedArray;
+// }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 #endif

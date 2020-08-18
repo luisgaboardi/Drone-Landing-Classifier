@@ -12,19 +12,19 @@ int *ILBP(int **pixel, int size)
     int *ILBPArray = int_array_allocation(512);
 
     // First Step ILBP: Generating aux matrix with 0 and 1 comparing pixel value with the average of the 9 neighbor pixels including itself
-    float average;
+    double average;
 
     int arrayInd, min;
     
-    for (int l = 1; l < size-1; ++l)
+    for (int line = 1; line < size-1; ++line)
     {
-        for (int c = 1; c < size-1; ++c)
+        for (int col = 1; col < size-1; ++col)
         {
             // Calculate average and create neighbor matrix
             average = 0;
-            for (int i = l, x = 0; i <= l+2; ++i, x++)
+            for (int i = line, x = 0; i <= line+2; ++i, x++)
             {
-                for (int j = c, y = 0; j <= c+2; ++j, y++)
+                for (int j = col, y = 0; j <= col+2; ++j, y++)
                 {
                     aux[x][y] = pixel[i-1][j-1];
                     average += aux[x][y];
@@ -32,10 +32,8 @@ int *ILBP(int **pixel, int size)
             }
 
             average /= 9.0;
-
             
-            
-            // Define neighbor binary word(array)
+            // Define neighbor binary word(array) // I may change the path
             arrayInd = 0;
             for (int x = 0; x <= 2; x++)
             {
@@ -48,16 +46,13 @@ int *ILBP(int **pixel, int size)
                 }
             }
 
+            // Get minimal decimal value from the binary word
             min = getMinValue(neighborArray);
 
+            // Add 1 to the position min in the ILBPArray
             ILBPArray[min]++;
         }
     }
-
-    // for (int i = 0; i < 256; ++i)
-    // {
-    //     if(ILBPArray[i] != 0) printf("[%d] = %d\t", i, ILBPArray[i]);
-    // }
 
     aux = free_matrix(3, aux);
 
