@@ -1,6 +1,6 @@
 #include "functions.h"
 
-int *ILBP(int **pixel, int size)
+double *ILBP(int **pixel, int size)
 {    
     // Allocating matrix aux to store neighbors
     int **aux = matrix_allocation(3);
@@ -9,7 +9,7 @@ int *ILBP(int **pixel, int size)
     char neighborArray[9];
 
     // Result Array of ILBP
-    int *ILBPArray = int_array_allocation(512);
+    double *ILBPArray = double_array_allocation(512);
 
     // First Step ILBP: Generating aux matrix with 0 and 1 comparing pixel value with the average of the 9 neighbor pixels including itself
     double average;
@@ -50,7 +50,7 @@ int *ILBP(int **pixel, int size)
             min = getMinValue(neighborArray);
 
             // Add 1 to the position min in the ILBPArray
-            ILBPArray[min]++;
+            ILBPArray[min] += 1.0;
         }
     }
 

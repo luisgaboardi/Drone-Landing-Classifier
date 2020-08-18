@@ -1,5 +1,4 @@
 #include "functions.h"
-#include "math.h"
 
 double *GLCM(int **pixel, int size)
 {
