@@ -7,9 +7,10 @@ double *GLCM(int **pixel, int size)
     int neighborSize = 256;
     int **neighbor = matrix_allocation(neighborSize);
     
-    int **aux = matrix_allocation(size);
     double contrast = 0.0, energy = 0.0, homogeneity = 0.0;
     int counter = 0;
+
+
 
     // South-neighbor
     for (int l = 0; l < size-1; ++l)

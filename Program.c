@@ -7,7 +7,7 @@
   2) Save them in a dynamic memory variable (matrix) - OK
   3) ILBP - generate array with ILBP code frequency for each image - OK
   4) GLCM - generate array with the 24 image features (3 for each of the 8 matrixes) - OK
-  5) Classifier measured by euclidian distance
+  5) Classifier measured by euclidian distance - OK
   --------- ML vs NN ---------
   5) Create neurons
   6) Design feed-foward neural network with arbitrary neurons in the one hidden layer
@@ -29,7 +29,7 @@ void main()
     const int trainingImages = 50;
 
     // how many images will be used for testing
-    const int testingImages = 100 - trainingImages;
+    const int testingImages = dataSetSize - trainingImages;
     
     // Get example to determine how many pixels the images have
     char imgEx[] = "DataSet/grass/grass_01.txt";
@@ -82,14 +82,14 @@ void main()
     int randomImageOrder[dataSetSize+1];
     randomImageOrder[0] = 0;
 
-    // Generate sequential array from 1 to 50
-    for (int img = 1; img <= trainingImages; ++img) randomImageOrder[img] = img;
+    // Generate sequential array from 1 to 'dataSetSize/2'
+    for (int img = 1; img <= dataSetSize/2; ++img) randomImageOrder[img] = img;
 
     // Shuffle the array to form a random array
-    for (int img = 1; img <= trainingImages; ++img) 
+    for (int img = 1; img <= dataSetSize/2; ++img) 
     {
         int temp = randomImageOrder[img];
-        int randomIndex = (rand() % trainingImages) + 1;
+        int randomIndex = (rand() % dataSetSize/2) + 1;
         randomImageOrder[img]         = randomImageOrder[randomIndex];
         randomImageOrder[randomIndex] = temp;
     }
@@ -104,15 +104,15 @@ void main()
         if(type1 <= trainingImages/2)
         {
             strcpy(imageAdress, concatenate_image_adress(imageAdress, imagesFolder, imageType1, randomImageOrder[type1], numberLength));
-            printf("\n\n**** [Image %d] = %s ****\n", type1, imageAdress);
+            printf("\n\n [%d] = %s\n", type1, imageAdress);
             type1++;
         }
 
         // Read 'trainingImages/2' training grass images
         else
         {
-            strcpy(imageAdress, concatenate_image_adress(imageAdress, imagesFolder, imageType1, randomImageOrder[type1], numberLength));
-            printf("\n\n**** [Image %d] = %s ****\n", type2, imageAdress);
+            strcpy(imageAdress, concatenate_image_adress(imageAdress, imagesFolder, imageType2, randomImageOrder[type2], numberLength));
+            printf("\n\n [%d] = %s\n", type2, imageAdress);
             type2++;
         }
         
@@ -123,18 +123,20 @@ void main()
         ILBPArray = ILBP(imageRead, IMAGESIZE);
         // Normalize
         ILBPArray = normalize(ILBPArray, ILBPSize);
-        printf("ILBP Done.\n");
+        //printf("ILBP Done.\n");
 
         // Run GLCM algorithm on the just read image and store result array in 'GLCMArray'
         GLCMArray = GLCM(imageRead, IMAGESIZE);
         GLCMArray = normalize(GLCMArray, GLCMSize);
-        printf("GLCM Done.");
+        //printf("GLCM Done.");
 
         // Store ILBP result in the 'imgFeatures' array
         for(int f = 0; f < ILBPSize; ++f) imgFeatures[f] = ILBPArray[f];
 
         // Store GLCM result in the 'imgFeatures' array after the ILBP results
         for(int f = ILBPSize; f < imageFeatureArraySize; ++f) imgFeatures[f] = GLCMArray[f-ILBPSize];
+
+        printf(" Done.");
 
         // Calculate the sum of the imageFeatures
         for(int s = 0; s < imageFeatureArraySize; ++s) averageFeatures[s] += imgFeatures[s];
@@ -151,7 +153,7 @@ void main()
                 type1Classification[feature] = averageFeatures[feature];
             }
 
-            printf("\n***Type1 parameters array done!!***\n");
+            printf("\n\n##### Type1 parameters array done! #####\n");
 
             // Finally, clear 'averageFeatures' array to now be used for the 'type2' images
             for(int feature = 0; feature < imageFeatureArraySize; ++feature) averageFeatures[feature] = 0;
@@ -169,23 +171,115 @@ void main()
                 type2Classification[feature] = averageFeatures[feature];
             } 
 
-            printf("*Type2 parameters array done!!*\n");
-            free(imgFeatures);
-            free(ILBPArray);
-            free(GLCMArray);
+            printf("\n\n##### Type2 parameters array done! #####\n");
             free(averageFeatures);
             
         }
 
     }
 
-    // TESTING //
 
 
 
 
 
 
+    ///////////////////////// TESTING //////////////////////////////////
+
+
+
+
+
+
+
+    double euclidianDist1, euclidianDist2;
+    double correct = 0, falseAceptance = 0, falseRejection = 0;
+
+    printf("\n\n\n ##### TESTING #####\n\n\n");
+
+    // Go through every testing image and do:
+    for(int type1 = 1, type2 = 1; type2 <= testingImages/2;)
+    {
+        // Erase previous image name to store the next one
+        imageAdress[0] = '\0';
+
+        // Read 'testingImages/2' asphalt images
+        if(type1 <= testingImages/2)
+        {
+            strcpy(imageAdress, concatenate_image_adress(imageAdress, imagesFolder, imageType1, randomImageOrder[type1+trainingImages/2], numberLength));
+            printf("\n\n [%d] = %s\n", type1+trainingImages/2, imageAdress);
+            type1++;
+        }
+
+        // Read 'testingImages/2' grass images
+        else
+        {
+            strcpy(imageAdress, concatenate_image_adress(imageAdress, imagesFolder, imageType2, randomImageOrder[type2+trainingImages/2], numberLength));
+            printf("\n\n [%d] = %s\n", type2+trainingImages/2, imageAdress);
+            type2++;
+        }
+
+        // Read above chosen image's pixels values and store in 'imageRead' matrix
+        imageRead = read_image(imageAdress, IMAGESIZE);
+
+        // Run ILBP algorithm on the just read image and store result array in 'ILBPArray'
+        ILBPArray = ILBP(imageRead, IMAGESIZE);
+        // Normalize
+        ILBPArray = normalize(ILBPArray, ILBPSize);
+        //printf("ILBP Done.\n");
+
+        // Run GLCM algorithm on the just read image and store result array in 'GLCMArray'
+        GLCMArray = GLCM(imageRead, IMAGESIZE);
+        GLCMArray = normalize(GLCMArray, GLCMSize);
+        //printf("GLCM Done.");
+
+        // Store ILBP result in the 'imgFeatures' array
+        for(int f = 0; f < ILBPSize; ++f) imgFeatures[f] = ILBPArray[f];
+
+        // Store GLCM result in the 'imgFeatures' array after the ILBP results
+        for(int f = ILBPSize; f < imageFeatureArraySize; ++f) imgFeatures[f] = GLCMArray[f-ILBPSize];
+
+        for(int i = 0; i < imageFeatureArraySize; ++i)
+        {
+            euclidianDist1 += pow((imgFeatures[i] - type1Classification[i]), 2);
+            euclidianDist2 += pow((imgFeatures[i] - type2Classification[i]), 2);
+        }
+
+        euclidianDist1 = sqrt(euclidianDist1);
+        euclidianDist2 = sqrt(euclidianDist2);
+
+        if (euclidianDist1 < euclidianDist2 && type2 == 1)
+        {
+            correct++;
+            printf(" A[%.2lf] x G[%.2lf] Correct, it's asphalt!", euclidianDist1, euclidianDist2);
+        }    
+        else if (euclidianDist1 < euclidianDist2 && type2 > 1)
+        {
+            falseRejection++;
+            printf(" A[%.2lf] x G[%.2lf] False rejection! Guessed asphalt but it was grass!", euclidianDist1, euclidianDist2);
+        }
+        else if (euclidianDist2 < euclidianDist1 && type2 > 1)
+        {
+            correct++;
+            printf("A[%.2lf] x G[%.2lf] Correct, it's grass!", euclidianDist1, euclidianDist2);
+        }
+        else if (euclidianDist2 < euclidianDist1 && type2 == 1)
+        {
+            falseAceptance++;
+            printf("A[%.2lf] x G[%.2lf] False aceptance! Guessed grass but it was asphalt!", euclidianDist1, euclidianDist2);
+        }      
+    }
+
+    char porc = '%';
+    printf("\n\n\n #### RESULTS ####\n");
+    printf("Correct:         %.0lf%c\n", 100 * correct/(double)testingImages, porc);
+    printf("False Rejection: %.0lf%c\n", 100 * falseRejection/(double)testingImages, porc);
+    printf("False Aceptance: %.0lf%c\n\n", 100 * falseAceptance/(double)testingImages, porc);
+
+
+    free(imgFeatures);
+    free(ILBPArray);
+    free(GLCMArray);
     free(type2Classification);
     free(type1Classification);
     

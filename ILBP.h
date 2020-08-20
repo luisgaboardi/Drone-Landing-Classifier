@@ -9,9 +9,10 @@ double *ILBP(int **pixel, int size)
     char neighborArray[9];
 
     // Result Array of ILBP
-    double *ILBPArray = double_array_allocation(512);
+    int ILBPSize = 256;
+    double *ILBPArray = double_array_allocation(ILBPSize);
 
-    // First Step ILBP: Generating aux matrix with 0 and 1 comparing pixel value with the average of the 9 neighbor pixels including itself
+    // First Step ILBP: Generating aux matrix with 0 and 1 comparing pixel value with the average of the 9 neighbor including
     double average;
 
     int arrayInd, min;
@@ -31,7 +32,7 @@ double *ILBP(int **pixel, int size)
                 }
             }
 
-            average /= 9.0;
+            average /= 8.0;
             
             // Define neighbor binary word(array) // I may change the path
             arrayInd = 0;
