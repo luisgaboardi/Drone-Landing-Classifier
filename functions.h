@@ -25,6 +25,11 @@ void shiftArr1Pos(char *, int);
 int getMinValue(char []);
 double *normalize(double *, int);
 
+double *image_process(char *, int);
+
+double *ILBP(int **, int);
+double *GLCM(int **, int);
+
 
 
 int **matrix_allocation(int size)
@@ -334,6 +339,413 @@ double *normalize(double *imgFeatures, int arraySize)
 }
 
 
+
+
+
+
+
+
+
+double *image_process(char *imageAdress, int IMAGESIZE)
+{
+    int **imageRead = matrix_allocation(IMAGESIZE);
+
+    // ILBP return array
+    int ILBPSize = 256;
+    double *ILBPArray = double_array_allocation(ILBPSize);
+
+    // GLCM return array
+    int GLCMSize = 24;
+    double *GLCMArray = double_array_allocation(GLCMSize);
+
+    // Image features (final result of each image)
+    int imageFeatureArraySize = ILBPSize + GLCMSize;
+    double *imgFeatures = double_array_allocation(imageFeatureArraySize);
+
+
+    // Read above chosen image's pixels values and store in 'imageRead' matrix
+    imageRead = read_image(imageAdress, IMAGESIZE);
+
+    // Run ILBP algorithm on the just read image and store normalized result array in 'ILBPArray'
+    ILBPArray = ILBP(imageRead, IMAGESIZE);
+    ILBPArray = normalize(ILBPArray, ILBPSize);
+
+    // Run GLCM algorithm on the just read image and store result array in 'GLCMArray'
+    GLCMArray = GLCM(imageRead, IMAGESIZE);
+    GLCMArray = normalize(GLCMArray, GLCMSize);
+
+    // Store ILBP result in the 'imgFeatures' array
+    for(int f = 0; f < ILBPSize; ++f) imgFeatures[f] = ILBPArray[f];
+
+    // Store GLCM result in the 'imgFeatures' array after the ILBP results
+    for(int f = ILBPSize; f < imageFeatureArraySize; ++f) imgFeatures[f] = GLCMArray[f-ILBPSize];
+
+    return imgFeatures;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+double *ILBP(int **pixel, int size)
+{    
+    // Allocating matrix aux to store neighbors
+    int **aux = matrix_allocation(3);
+
+    // int array with 0 and 1 of the 9 neighbor pixels
+    char neighborArray[9];
+
+    // Result Array of ILBP
+    int ILBPSize = 256;
+    double *ILBPArray = double_array_allocation(ILBPSize);
+
+    // First Step ILBP: Generating aux matrix with 0 and 1 comparing pixel value with the average of the 9 neighbor including
+    double average;
+
+    int arrayInd, min;
+    
+    for (int line = 1; line < size-1; ++line)
+    {
+        for (int col = 1; col < size-1; ++col)
+        {
+            // Calculate average and create neighbor matrix
+            average = 0;
+            for (int i = line, x = 0; i <= line+2; ++i, x++)
+            {
+                for (int j = col, y = 0; j <= col+2; ++j, y++)
+                {
+                    aux[x][y] = pixel[i-1][j-1];
+                    average += aux[x][y];
+                }
+            }
+
+            average /= 8.0;
+            
+            // Define neighbor binary word(array) // I may change the path
+            arrayInd = 0;
+            for (int x = 0; x <= 2; x++)
+            {
+                for (int y = 0; y <= 2; y++)
+                {
+                    if (aux[x][y] <= average) aux[x][y] = 0;
+                    else aux[x][y] = 1;
+                    neighborArray[arrayInd] = aux[x][y] + '0';
+                    arrayInd++;
+                }
+            }
+
+            // Get minimal decimal value from the binary word
+            min = getMinValue(neighborArray);
+
+            // Add 1 to the position min in the ILBPArray
+            ILBPArray[min] += 1.0;
+        }
+    }
+
+    aux = free_matrix(3, aux);
+
+    return ILBPArray;
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+double *GLCM(int **pixel, int size)
+{
+    int featureSize = 24;
+    double *features = double_array_allocation(featureSize);
+    int neighborSize = 256;
+    int **neighbor = matrix_allocation(neighborSize);
+    
+    double contrast = 0.0, energy = 0.0, homogeneity = 0.0;
+    int counter = 0;
+
+
+
+    // South-neighbor
+    for (int l = 0; l < size-1; ++l)
+    {
+        for (int c = 0; c < size; ++c)
+        {
+            neighbor[pixel[l][c]][pixel[l+1][c]]++;
+        }
+    }
+
+    // Measure features
+    for (int l = 0; l < neighborSize; ++l)
+    {
+        for (int c = 0; c < neighborSize; ++c)
+        {
+            contrast += fabs(pow(l-c,2)) * neighbor[l][c];
+            energy += pow(neighbor[l][c], 2.0);
+            homogeneity += neighbor[l][c] / (1.0 + fabs(l-c));
+        }
+    }
+
+
+    //contrat /= neighborSize;
+    features[counter] = contrast;
+    counter++;
+    features[counter] = energy;
+    counter++;
+    features[counter] = homogeneity;
+    counter++;
+
+    // Zeroing values
+    contrast = 0;
+    energy = 0;
+    homogeneity = 0;
+
+    // SouthEast-neighbor
+    for (int l = 0; l < size-1; ++l)
+    {
+        for (int c = 1; c < size; ++c)
+        {
+            neighbor[pixel[l][c]][pixel[l+1][c-1]]++;
+        }
+    }
+
+
+    // Measure features
+    for (int l = 0; l < neighborSize; ++l)
+    {
+        for (int c = 0; c < neighborSize; ++c)
+        {
+            contrast += fabs(pow(l-c,2)) * neighbor[l][c];
+            energy += pow(neighbor[l][c], 2.0);
+            homogeneity += neighbor[l][c] / (1.0 + fabs(l-c));
+        }
+    }
+
+    //contrat /= neighborSize;
+    features[counter] = contrast;
+    counter++;
+    features[counter] = energy;
+    counter++;
+    features[counter] = homogeneity;
+    counter++;
+
+    // Zeroing values
+    contrast = 0;
+    energy = 0;
+    homogeneity = 0;
+
+    // East-neighbor
+    for (int l = 0; l < size; ++l)
+    {
+        for (int c = 1; c < size; ++c)
+        {
+            neighbor[pixel[l][c]][pixel[l][c-1]]++;
+        }
+    }
+
+    // Measure features
+    for (int l = 0; l < neighborSize; ++l)
+    {
+        for (int c = 0; c < neighborSize; ++c)
+        {
+            contrast += fabs(pow(l-c,2)) * neighbor[l][c];
+            energy += pow(neighbor[l][c], 2.0);
+            homogeneity += neighbor[l][c] / (1.0 + fabs(l-c));
+        }
+    }
+
+    //contrat /= neighborSize;
+    features[counter] = contrast;
+    counter++;
+    features[counter] = energy;
+    counter++;
+    features[counter] = homogeneity;
+    counter++;
+
+    // Zeroing values
+    contrast = 0;
+    energy = 0;
+    homogeneity = 0;
+
+    // NorthEast-neighbor
+    for (int l = 1; l < size; ++l)
+    {
+        for (int c = 1; c < size-1; ++c)
+        {
+            neighbor[pixel[l][c]][pixel[l-1][c-1]]++;
+        }
+    }
+
+    // Measure features
+    for (int l = 0; l < neighborSize; ++l)
+    {
+        for (int c = 0; c < neighborSize; ++c)
+        {
+            contrast += fabs(pow(l-c,2)) * neighbor[l][c];
+            energy += pow(neighbor[l][c], 2.0);
+            homogeneity += neighbor[l][c] / (1.0 + fabs(l-c));
+        }
+    }
+
+    //contrat /= neighborSize;
+    features[counter] = contrast;
+    counter++;
+    features[counter] = energy;
+    counter++;
+    features[counter] = homogeneity;
+    counter++;
+
+    // Zeroing values
+    contrast = 0;
+    energy = 0;
+    homogeneity = 0;
+
+    // North-neighbor
+    for (int l = 1; l < size; ++l)
+    {
+        for (int c = 0; c < size; ++c)
+        {
+            neighbor[pixel[l][c]][pixel[l-1][c]]++;
+        }
+    }
+
+    // Measure features
+    for (int l = 0; l < neighborSize; ++l)
+    {
+        for (int c = 0; c < neighborSize; ++c)
+        {
+            contrast += fabs(pow(l-c,2)) * neighbor[l][c];
+            energy += pow(neighbor[l][c], 2.0);
+            homogeneity += neighbor[l][c] / (1.0 + fabs(l-c));
+        }
+    }
+
+    //contrat /= neighborSize;
+    features[counter] = contrast;
+    counter++;
+    features[counter] = energy;
+    counter++;
+    features[counter] = homogeneity;
+    counter++;
+
+    // Zeroing values
+    contrast = 0;
+    energy = 0;
+    homogeneity = 0;
+
+    // NorthWest-neighbor
+    for (int l = 1; l < size; ++l)
+    {
+        for (int c = 0; c < size-1; ++c)
+        {
+            neighbor[pixel[l][c]][pixel[l-1][c+1]]++;
+        }
+    }
+
+    // Measure features
+    for (int l = 0; l < neighborSize; ++l)
+    {
+        for (int c = 0; c < neighborSize; ++c)
+        {
+            contrast += fabs(pow(l-c,2)) * neighbor[l][c];
+            energy += pow(neighbor[l][c], 2.0);
+            homogeneity += neighbor[l][c] / (1.0 + fabs(l-c));
+        }
+    }
+
+    //contrat /= neighborSize;
+    features[counter] = contrast;
+    counter++;
+    features[counter] = energy;
+    counter++;
+    features[counter] = homogeneity;
+    counter++;
+
+    // Zeroing values
+    contrast = 0;
+    energy = 0;
+    homogeneity = 0;
+
+    // West-neighbor
+    for (int l = 0; l < size; ++l)
+    {
+        for (int c = 0; c < size-1; ++c)
+        {
+            neighbor[pixel[l][c]][pixel[l][c+1]]++;
+        }
+    }
+
+    // Measure features
+    for (int l = 0; l < neighborSize; ++l)
+    {
+        for (int c = 0; c < neighborSize; ++c)
+        {
+            contrast += fabs(pow(l-c,2)) * neighbor[l][c];
+            energy += pow(neighbor[l][c], 2.0);
+            homogeneity += neighbor[l][c] / (1.0 + fabs(l-c));
+        }
+    }
+
+    //contrat /= neighborSize;
+    features[counter] = contrast;
+    counter++;
+    features[counter] = energy;
+    counter++;
+    features[counter] = homogeneity;
+    counter++;
+
+    // Zeroing values
+    contrast = 0;
+    energy = 0;
+    homogeneity = 0;
+
+    // SouthWest-neighbor
+    for (int l = 0; l < size-1; ++l)
+    {
+        for (int c = 0; c < size-1; ++c)
+        {
+            neighbor[pixel[l][c]][pixel[l+1][c+1]]++;
+        }
+    }
+
+    // Measure features
+    for (int l = 0; l < neighborSize; ++l)
+    {
+        for (int c = 0; c < neighborSize; ++c)
+        {
+            contrast += fabs(pow(l-c,2)) * neighbor[l][c];
+            energy += pow(neighbor[l][c], 2.0);
+            homogeneity += neighbor[l][c] / (1.0 + fabs(l-c));
+        }
+    }
+
+    //contrat /= neighborSize;
+    features[counter] = contrast;
+    counter++;
+    features[counter] = energy;
+    counter++;
+    features[counter] = homogeneity;
+
+    return features;
+}
 
 
 
