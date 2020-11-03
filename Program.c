@@ -13,6 +13,14 @@
   8) Test and return accuracy vs ML
 */
 
+typedef struct Neuronio{
+    float *entrada;
+    float *pesos;
+    float Bias;
+    float somatorio;
+    float saida;
+}Neuro;
+
 void main()
 {
 
@@ -61,10 +69,6 @@ void main()
     double *type2Classification = double_array_allocation(imageFeatureArraySize);
 
 
-
-
-
-
     //////////// Generate random order image array to process ////////////
 
 
@@ -89,9 +93,6 @@ void main()
         randomImageOrder[img]         = randomImageOrder[randomIndex];
         randomImageOrder[randomIndex] = temp;
     }
-
-
-
 
 
 
@@ -170,9 +171,8 @@ void main()
             free(averageFeatures);
             
         }
-
+    
     }
-
 
 
 
@@ -230,6 +230,7 @@ void main()
     }
 
 
+    //////////// 
 
 
     //////////// Printing results ////////////
